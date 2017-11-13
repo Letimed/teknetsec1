@@ -1,0 +1,12 @@
+Class Socket
+{
+ private:
+  int _socket;
+
+ public:
+  Socket();
+  ~Socket();
+  int Socket::getSocket() const;
+  int Socket::getConnection(int prot);
+  
+}
