@@ -36,14 +36,17 @@ void PacketDecrypt::Display(int size, char *buff)
     }
   else if (mystruct->protocol == 6)
     {
-      print_tcp(buff, size); // tcp
+      // tcp
+      print_tcp(buff, size); 
       //print_header(buff, ipheadersize);
       //print_data(buff, size);
     }
   else if (mystruct->protocol == 17)
     {
-      print_udp(buff, size);// udp
-      //    print_data(buff, size);
+      // udp
+      print_udp(buff, size);
+      //printUDP(buff, size);
+      //print_data(buff, size);
     }
   return;
 }
@@ -75,7 +78,6 @@ void PacketDecrypt::print_tcp(char* buff, int size)
 
   struct tcphdr *tcpheader=(struct tcphdr*)(buff + iphdrlen);
   
-  std::cout << "===========TCP===========" << std::endl;
   std::cout << "   |-Source Port : " << tcpheader->source << std::endl;
   std::cout << "   |-Destination Port : " << tcpheader->dest << std::endl;
   std::cout << "   |-Sequence Number : " << tcpheader->seq << std::endl;
@@ -102,15 +104,16 @@ void PacketDecrypt::print_tcp(char* buff, int size)
 void PacketDecrypt::print_udp(char* buff, int size)
 {
   struct udphdr* udpheader;
-  udpheader = (struct udphdr *)(buff, size);
+  udpheader = (struct udphdr *)(buff + size);
 
   std::cout << "===========UDP===========" << std::endl;
-  std::cout << "4444444'" << std::endl;
-  std::cout << "   |-Source Port      : %d\n" << ntohs(udpheader->source) << std::endl; // segfault
-  std::cout << "555555" << std::endl;
-  std::cout << "   |-Destination Port : %d\n" << ntohs(udpheader->dest) << std::endl;
-  std::cout << "   |-UDP Length       : %d\n" << ntohs(udpheader->len) << std::endl;
-  std::cout << "   |-UDP Checksum     : %d\n" << ntohs(udpheader->check) << std::endl;
+  std::cout << "   |-Source Port      : " << udpheader->source << std::endl;
+  std::cout << "   |-Destination Port : " << ntohs(udpheader->dest) << std::endl;
+  std::cout << "   |-UDP Length       : " << ntohs(udpheader->len) << std::endl;
+  std::cout << "   |-UDP Checksum     : " << ntohs(udpheader->check) << std::endl;
+  //std::cout <<    strndup(buffer + iphdrlen, sizeof(udp)) << std::endl;
+  //std::cout <<    p.data.length = totalSize - sizeof(udp) - iphdrlen;<< std::endl;
+  //std::cout <<    p.data.data = strndup(buffer + sizeof(udp) + iphdrlen, p.data.length); << std::endl;
 }
 
 void PacketDecrypt::print_data(char *buff, int size)

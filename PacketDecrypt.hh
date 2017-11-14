@@ -42,6 +42,7 @@ public :
   void Display(int, char*);
   void print_tcp(char*, int);
   void print_udp(char*, int);
+  void printUDP(char*, int);
   void print_header(struct iphdr*, int);  
   void print_data(char *, int);
 };
