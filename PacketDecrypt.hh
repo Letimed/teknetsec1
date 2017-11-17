@@ -8,6 +8,10 @@
 #include <netinet/in.h>
 #include <string.h>
 
+
+#define FILTER true
+#define PROTOCOL 17
+
 struct header
 {
     unsigned char  iph_header_len;
@@ -33,7 +37,6 @@ struct packetData
   int length;
   char *data;
 };
-
 
 class PacketDecrypt
 {

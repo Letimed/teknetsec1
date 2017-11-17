@@ -20,7 +20,7 @@ LXXDFLAGS	=
 all:		$(NAME)
 
 $(NAME):	$(OBJS) $(OBJM)
-	@$(CC) $(LDFLAGS) $(OBJS) $(OBJM) -o $(NAME) $(DXXFLAGS) -pthread
+	@$(CC) $(LDFLAGS) $(OBJS) $(OBJM) -o $(NAME) $(DXXFLAGS) -pthread -std=gnu++1z -std=c++1z
 	@echo "------>" $(CGREEN) $(NAME) "created" $(CNOCOLOR)
 
 

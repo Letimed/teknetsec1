@@ -31,7 +31,14 @@ int PacketDecrypt::Decrypt(const int sock, bool log)
 void PacketDecrypt::Display(int size, char *buff, bool log)
 {
   struct iphdr* mystruct = (struct iphdr*)buff;
-  
+  /*if (FILTER)
+  {
+    if (PROTOCOL != mystruct->protocol)
+    {
+      std::cout << "heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeellllllllllllllllllllllllllllllllllllllllllllllllllooooooooooooooooooooooooooooooooooooooo" << std::endl;
+      return;
+    }
+  } */
   print_header(mystruct ,size, log);
   switch (mystruct->protocol)
   {
@@ -52,7 +59,7 @@ void PacketDecrypt::print_header(struct iphdr* mystruct, int length, bool log)
 
   source.sin_addr.s_addr = mystruct->saddr;
   destination.sin_addr.s_addr = mystruct->daddr;
-  
+
   std::cout << "===========IPHEADER===========" << std::endl;
   std::cout << "   |-iph_header_len : " << mystruct->ihl << std::endl;
   std::cout << "   |-iph_version : " << mystruct->version << std::endl;
@@ -80,6 +87,7 @@ void PacketDecrypt::print_header(struct iphdr* mystruct, int length, bool log)
         myfile << "   |-iph_destination : "  << inet_ntoa(destination.sin_addr) << std::endl; 
     }
   }
+
 }
 
 void PacketDecrypt::print_tcp(char* buff, int size, bool log)
@@ -170,6 +178,7 @@ void PacketDecrypt::print_udp(char* buff, int size, bool log)
   myfile << "udp header" << std::endl;
   print_data(buff + iphdrlen, udpheader->len, log);
   std::cout << "udp data" << std::endl;
+  myfile << "udp data " << std::endl;
   print_data(buff + iphdrlen + udpheader->len, (size - udpheader->len - iph->ihl*4), log);
 }
 
