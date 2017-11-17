@@ -20,7 +20,7 @@ LXXDFLAGS	=
 all:		$(NAME)
 
 $(NAME):	$(OBJS) $(OBJM)
-	@$(CC) $(LDFLAGS) $(OBJS) $(OBJM) -o $(NAME) $(DXXFLAGS)
+	@$(CC) $(LDFLAGS) $(OBJS) $(OBJM) -o $(NAME) $(DXXFLAGS) -pthread
 	@echo "------>" $(CGREEN) $(NAME) "created" $(CNOCOLOR)
 
 

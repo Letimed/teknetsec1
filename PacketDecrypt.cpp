@@ -1,8 +1,15 @@
 #include "PacketDecrypt.hh"
 #include <iostream>
 #include <unistd.h>
+#include <fstream>
+#include <string>
 
-int PacketDecrypt::Decrypt(const int sock)
+PacketDecrypt::PacketDecrypt()
+{
+
+}
+
+int PacketDecrypt::Decrypt(const int sock, bool log)
 {
   struct sockaddr _sockaddr;
   char buff[64000];
@@ -16,27 +23,28 @@ int PacketDecrypt::Decrypt(const int sock)
   else
     {
       std::cout << "receive ok" << std::endl;
-      Display(size, buff);
+      Display(size, buff, log);
       return 0;
     }
 }
 
-void PacketDecrypt::Display(int size, char *buff)
+void PacketDecrypt::Display(int size, char *buff, bool log)
 {
   struct iphdr* mystruct = (struct iphdr*)buff;
   
-  print_header(mystruct ,size);
-  if (mystruct->protocol == 1)
-    {
-      //icmp
-    }
-  else if (mystruct->protocol == 2)
-    {
-      //igmp
-    }
-  else if (mystruct->protocol == 6)
+  print_header(mystruct ,size, log);
+  switch (mystruct->protocol)
+  {
+      case 6:
+        print_tcp(buff, size, log);
+      case 17:
+        print_udp(buff,size, log);
+      break;
+  }
+/*  if (mystruct->protocol == 6)
     {
       // tcp
+      std::cout <<  "TCCCCCCCCCCCCCCCCCCCCP " << std::endl;
       print_tcp(buff, size); 
       //print_header(buff, ipheadersize);
       //print_data(buff, size);
@@ -44,15 +52,17 @@ void PacketDecrypt::Display(int size, char *buff)
   else if (mystruct->protocol == 17)
     {
       // udp
+      std::cout << " UDDDDDDDDDDDDDDP" << std::endl;
       print_udp(buff, size);
       //printUDP(buff, size);
       //print_data(buff, size);
-    }
-  return;
+    }*/
 }
 
-void PacketDecrypt::print_header(struct iphdr* mystruct, int length)
+void PacketDecrypt::print_header(struct iphdr* mystruct, int length, bool log)
 {
+  std::ofstream myfile;
+  myfile.open("./log.txt", std::ofstream::out | std::ofstream::app);
   struct sockaddr_in source;
   struct sockaddr_in destination;
 
@@ -69,15 +79,34 @@ void PacketDecrypt::print_header(struct iphdr* mystruct, int length)
   std::cout << "   |-iph_checksum : "<< mystruct->check << std::endl;
   std::cout << "   |-iph_source :  "<< inet_ntoa(source.sin_addr) << std::endl;
   std::cout << "   |-iph_destination : "  << inet_ntoa(destination.sin_addr) << std::endl;
+
+  if (log == true)
+  {
+    if (myfile)
+    {
+        myfile << "===========IPHEADER===========" << std::endl;
+        myfile << "   |-iph_header_len : " << mystruct->ihl << std::endl;
+        myfile << "   |-iph_version : " << mystruct->version << std::endl;
+        myfile << "   |-iph_tos : "<< mystruct->tos << std::endl;
+        myfile << "   |-iph_total_length : " << mystruct->tot_len << std::endl;
+        myfile << "   |-iph_id : " << mystruct->id << std::endl;
+        myfile << "   |-iph_ttl : "<< mystruct->ttl << std::endl;
+        myfile << "   |-iph_checksum : "<< mystruct->check << std::endl;
+        myfile << "   |-iph_source :  "<< inet_ntoa(source.sin_addr) << std::endl;
+        myfile << "   |-iph_destination : "  << inet_ntoa(destination.sin_addr) << std::endl; 
+    }
+  }
 }
 
-void PacketDecrypt::print_tcp(char* buff, int size)
+void PacketDecrypt::print_tcp(char* buff, int size, bool log)
 {
+  std::ofstream myfile;
+  myfile.open("./log.txt", std::ofstream::out | std::ofstream::app);
   struct iphdr *iph = (struct iphdr *)buff;
   int iphdrlen = iph->ihl*4;
 
   struct tcphdr *tcpheader=(struct tcphdr*)(buff + iphdrlen);
-  
+  std::cout << "===========TCP===========" << std::endl;
   std::cout << "   |-Source Port : " << tcpheader->source << std::endl;
   std::cout << "   |-Destination Port : " << tcpheader->dest << std::endl;
   std::cout << "   |-Sequence Number : " << tcpheader->seq << std::endl;
@@ -93,41 +122,102 @@ void PacketDecrypt::print_tcp(char* buff, int size)
   std::cout << "   |-Checksum : " << tcpheader->check << std::endl;
   std::cout << "   |-Urgent Pointer : " << tcpheader->urg_ptr << std::endl;
 
-  std::cout << "ip header " << std::endl;
-  print_data(buff, iphdrlen);
-  std::cout << "tcp header " << std::endl;
-  print_data(buff + iphdrlen, tcpheader->doff * 4);
-  std::cout << "tcp data" << std::endl;
-  print_data(buff + iphdrlen + tcpheader->doff * 4, (size - tcpheader->doff*4 - iph->ihl*4));
+ if (log == true)
+  {
+    if (myfile)
+    {
+      myfile << "===========TCP===========" << std::endl;
+      myfile << "   |-Source Port : " << tcpheader->source << std::endl;
+      myfile << "   |-Destination Port : " << tcpheader->dest << std::endl;
+      myfile << "   |-Sequence Number : " << tcpheader->seq << std::endl;
+      myfile << "   |-Acknowledge Number : "<< tcpheader->ack_seq << std::endl;
+      myfile << "   |-Header Length : " << tcpheader->doff << std::endl;
+      myfile << "   |-Urgent Flag : "<< tcpheader->urg << std::endl;
+      myfile << "   |-Acknowledgement Flag :  "<< tcpheader->ack << std::endl;
+      myfile << "   |-Push Flag : " << tcpheader->psh << std::endl;
+      myfile << "   |-Reset Flag : " << tcpheader->rst << std::endl;
+      myfile << "   |-Synchronise Flag : " << tcpheader->syn << std::endl;
+      myfile << "   |-Finish Flag : " << tcpheader->fin << std::endl;
+      myfile << "   |-Window : " << tcpheader->window << std::endl;
+      myfile << "   |-Checksum : " << tcpheader->check << std::endl;
+      myfile << "   |-Urgent Pointer : " << tcpheader->urg_ptr << std::endl;
+    }
+  }
+
+  print_data(buff, iphdrlen, log);
+  std::cout << "TCP Header" << std::endl;
+  myfile << "TCP Header" << std::endl;
+  print_data(buff + iphdrlen, tcpheader->doff * 4, log);
+  std::cout << "TCP body " << std::endl;
+  myfile << "TCP body " << std::endl;
+  print_data(buff + iphdrlen + tcpheader->doff * 4, size - (tcpheader->doff * 4 + iphdrlen), log);
 }
 
-void PacketDecrypt::print_udp(char* buff, int size)
+void PacketDecrypt::print_udp(char* buff, int size, bool log)
 {
-  struct udphdr* udpheader;
-  udpheader = (struct udphdr *)(buff + size);
+  std::ofstream myfile;
+  myfile.open("./log.txt", std::ofstream::out | std::ofstream::app);
+  struct iphdr *iph = (struct iphdr *)buff;
+  int iphdrlen = iph->ihl * 4;
+  struct udphdr* udpheader = (struct udphdr *)(buff + size);
 
   std::cout << "===========UDP===========" << std::endl;
   std::cout << "   |-Source Port      : " << udpheader->source << std::endl;
   std::cout << "   |-Destination Port : " << ntohs(udpheader->dest) << std::endl;
   std::cout << "   |-UDP Length       : " << ntohs(udpheader->len) << std::endl;
   std::cout << "   |-UDP Checksum     : " << ntohs(udpheader->check) << std::endl;
+
+  if (log == true)
+  {
+    if (myfile)
+    {
+      myfile << "===========UDP===========" << std::endl;
+      myfile << "   |-Source Port      : " << udpheader->source << std::endl;
+      myfile << "   |-Destination Port : " << ntohs(udpheader->dest) << std::endl;
+      myfile << "   |-UDP Length       : " << ntohs(udpheader->len) << std::endl;
+      myfile << "   |-UDP Checksum     : " << ntohs(udpheader->check) << std::endl;
+    }
+  }
+
+  std::cout << "ip header " << std::endl;
+  myfile << "ip header" << std::endl;
+  print_data(buff, iphdrlen, log);
+  std::cout << "udp header " << std::endl;
+  myfile << "udp header" << std::endl;
+  print_data(buff + iphdrlen, udpheader->len, log);
+  std::cout << "udp data" << std::endl;
+  print_data(buff + iphdrlen + udpheader->len, (size - udpheader->len - iph->ihl*4), log);
+  
   //std::cout <<    strndup(buffer + iphdrlen, sizeof(udp)) << std::endl;
   //std::cout <<    p.data.length = totalSize - sizeof(udp) - iphdrlen;<< std::endl;
   //std::cout <<    p.data.data = strndup(buffer + sizeof(udp) + iphdrlen, p.data.length); << std::endl;
 }
 
-void PacketDecrypt::print_data(char *buff, int size)
+void PacketDecrypt::print_data(char *buff, int size, bool log)
 {
   int i;
+  std::string mydata;
 
   i = 0;
   while (i < size)
     {
-      if (buff[i] > 32 && buff[i] < 128)
-	  std::cout << buff[i];
+      if (buff[i] > 32 && buff[i] < 127)
+	       mydata.push_back(buff[i]);
       else
-	std::cout << ".";
+	       mydata.push_back('.');
       i++;
     }
-  std::cout <<  std::endl;
+  mydata.push_back('\n');
+
+  std::cout << mydata;
+ if (log == true)
+  {
+    std::ofstream myfile;
+    myfile.open("./log.txt", std::ofstream::out | std::ofstream::app);
+    if (myfile)
+    {
+       myfile << mydata;
+    }
+  }
 }
+
