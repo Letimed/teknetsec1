@@ -41,22 +41,6 @@ void PacketDecrypt::Display(int size, char *buff, bool log)
         print_udp(buff,size, log);
       break;
   }
-/*  if (mystruct->protocol == 6)
-    {
-      // tcp
-      std::cout <<  "TCCCCCCCCCCCCCCCCCCCCP " << std::endl;
-      print_tcp(buff, size); 
-      //print_header(buff, ipheadersize);
-      //print_data(buff, size);
-    }
-  else if (mystruct->protocol == 17)
-    {
-      // udp
-      std::cout << " UDDDDDDDDDDDDDDP" << std::endl;
-      print_udp(buff, size);
-      //printUDP(buff, size);
-      //print_data(buff, size);
-    }*/
 }
 
 void PacketDecrypt::print_header(struct iphdr* mystruct, int length, bool log)
@@ -187,10 +171,6 @@ void PacketDecrypt::print_udp(char* buff, int size, bool log)
   print_data(buff + iphdrlen, udpheader->len, log);
   std::cout << "udp data" << std::endl;
   print_data(buff + iphdrlen + udpheader->len, (size - udpheader->len - iph->ihl*4), log);
-  
-  //std::cout <<    strndup(buffer + iphdrlen, sizeof(udp)) << std::endl;
-  //std::cout <<    p.data.length = totalSize - sizeof(udp) - iphdrlen;<< std::endl;
-  //std::cout <<    p.data.data = strndup(buffer + sizeof(udp) + iphdrlen, p.data.length); << std::endl;
 }
 
 void PacketDecrypt::print_data(char *buff, int size, bool log)
